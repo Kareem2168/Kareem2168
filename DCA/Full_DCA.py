@@ -207,3 +207,29 @@ def arps_fit_exp(t, q, plot=None):
 
   return qi, di
 
+def remove_outlier(df, column_name, window, number_of_stdevs_away_from_mean, trim=False):
+ 
+
+  df[column_name+'_rol_Av']=df[column_name].rolling(window=window, center=True).mean()
+  df[column_name+'_rol_Std']=df[column_name].rolling(window=window, center=True).std()
+
+  
+  df[column_name+'_is_Outlier']=(abs(df[column_name]-df[
+                              column_name+'_rol_Av'])>(
+                              number_of_stdevs_away_from_mean*df[
+                              column_name+'_rol_Std']))
+  
+
+  result = df.drop(df[df[column_name+'_is_Outlier'] == True].index).reset_index(drop=True)
+
+  
+  result = result[result[column_name+'_rol_Av'].notna()]  
+
+  if trim==True:
+    
+    maxi = result[column_name+'_rol_Av'].max()
+    maxi_index = (result[result[column_name+'_rol_Av']==maxi].index.values)[0]
+    result = result.iloc[maxi_index:,:].reset_index(drop=True)
+
+  return result  
+
